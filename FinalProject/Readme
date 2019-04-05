@@ -1,8 +1,6 @@
-# ANLY 506 Final Project Readme file
+# ANLY 506 Final Project: Bike Vendors EDA Project
 
-## Bike Vendors EDA Project
-
-### Introduction
+## Introduction
 
 This is a readme file for the final project in my ANLY 506 class for the Spring 2019 semester.
 
@@ -10,7 +8,7 @@ Through this project, I am seeking to demonstrate mastery of some of the explora
 
 In this project, I will be conducting an exploratory data analysis of the bike vendors dataset as provided by the Professor. 
 
-### Data
+## Data
 
 The Bike Vendors data set contains information about the market share of different bike vendors for different models and types of bikes. The data set is provided in a csv file which contains 97 observations of 35 variables.
 
