@@ -1,0 +1,136 @@
+---
+title: "Data Wrangling"
+author: "Oluwatobi Akinyemi - 3/16/2019"
+date: "April 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data Wrangling
+
+This file covers important code syntax to perform some of the most common functions for wrangling data into tidy data sets in R. It will also serve as a readily accessible reference for some hard to be remember functions which have great utility for the same.
+
+### Creating matrices and data frames
+
+To create a matrix from vectors use:
+
+```{r}
+cbind(v1, v2, v3) # To combine the vectors as columns
+rbind(v1, v2, v3) # To combine the vectors as rows
+```
+
+To  create a matrix from a vector:
+```{r}
+matrix(vector, nrow = n, ncol = n, byrow = TRUE/FALSE)
+```
+
+Use `r data.frame()` to create a data frame.
+Including the argument `r stringsAsFactors = FALSE` ensures that strings are not converted into factors in the created data frame.
+
+To see all inbuilt data sets in r: `r library(help = "datasets")`
+
+### Data frame functions
+
+```{r}
+# To see rownames
+rownames(dataframe)
+```
+
+To view multiple columns of a df at once:
+```{r}
+head(dataframe[c("col1", "col2")])
+```
+
+### Dataframe column names
+
+To change a specific column name:
+```{r}
+names(df)[n] <- "string" # Where n is the position of the specific column
+
+# Using  logical vectors
+names(df)[names(df) == "old.name"] <- "new.name"
+```
+
+### Slicing data frames
+
+slicing with a logical vector:
+```{r}
+df.slice <- df[df$col1 == "value1", ] # Where col1 is the column which contains the value the logical test is based on and value is the value you are testing
+```
+
+Slicing with subset
+```{r}
+subset(x = df,
+       subset = conditions.for.subset, # May be one or multiple coditions 
+       select = c(col1, col2)) # Columns to be returned
+
+# For example
+subset(x = ToothGrowth,
+      subset = len < 20 &
+               supp == "OJ" &
+               dose >= 1)
+```
+
+`r with()` works just like `r attach(data)`. You can use this instead of subsetting with "$"
+```{r}
+with(data, col1 + col2 / col3 + 2 * col2)
+```
+
+### Tidy data: Spreading and gathering
+
+#### Gathering
+
+You gather when you have column names which should be values:
+```{r}
+df %>% 
+  gather(`col1`, `col2`, key = "desired label", value = "new column containing contents of col1 & col2")
+
+# For example
+table4a %>% 
+  gather(`1999`, `2000`, key = "year", value = "cases")
+```
+
+#### Spreading
+
+You spread when you an observation which is scattered across multiple rows. Whenever you have two partially identical rows, it may present an opportunity for spreading to create new columns which can then house the differing values between the partially identical rows.
+```{r}
+df %>%
+    spread(key = col.to.spread, value = col.of.values.to.spread.under.new.columns)
+# For example
+table2 %>%
+    spread(key = type, value = count)
+```
+
+#### Separating
+
+You can use separate to split up columns which contain concatenated values, often separated by a delimiter, which should really belong in individual columns.
+```{r}
+df %>% 
+  separate(col.to.separate, into = c("newcol1", "newcol2",...))
+# For example
+table3 %>% 
+  separate(rate, into = c("cases", "population", convert = TRUE)) # convert tries to convert the new columns into a better type, e.g. int insread of chr
+# specifying 'sep = n' tells separate the exact point of split
+```
+
+#### Unite
+
+This is the opposite of separate
+```{r}
+df %>% 
+  unite(new.col, old.col1, old.col2, sep = "") # "" means no seperator. Default is "_"
+# For example
+table5 %>% 
+  unite(new, century, year, sep = "")
+```
+
+#### Missing values
+
+`r complete()` finds unique rows and enters "NAs" where values are missing. This complete is different from complete cases, which eliminates all rows in the dataset with values missing returning only rows with observations in every single column.
+
+`r fill()` completes missing values with the last found value.
+

@@ -1,0 +1,168 @@
+---
+title: "Data Importing"
+author: "Oluwatobi Akinyemi - 3/16/2019"
+date: "April 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data Import
+
+This file covers important code syntax to perform some of the most common functions for importing data into R. It will also serve as a readily accessible reference for some hard to be remember functions which have great utility for the same.
+
+### Saving and loading data
+
+`r save()` is a great way to store multple data objects into one `r .RData` file as follows:
+
+Given 3 data frames a, b and c
+
+```{r}
+save(a, b, c, file = "myobjects.RData")
+```
+
+To load the above saved file:
+```{r}
+load(file = "data/myobjects.RData")
+```
+
+### Clear workspace
+
+To clear the global environment of all objects use:
+```{r}
+rm(list = ls())
+```
+
+### Reading in data
+
+Reading in a .txt file uses the read.table function as follows:
+```{r}
+# Specify the location of the file using the file argument or if you set the working directory to the folder containing the file, you can simply use the file name
+# \t tells r that the columns are tab-delimited for accurate reading
+# Setting header = TRUE indicates that the first row of the data should be used as header
+read.table(file = 'data/sample1.txt', 
+           sep = '\t', 
+           header = TRUE,
+           stringsAsFactors = FALSE)    # do NOT convert strings to factors!!
+```
+
+We can read in data directly from a URL similarly by simply setting the `r file` argument of `r read.table` to the URL link to the desired file. Other arguments can be used as usual.
+
+#### `r read_csv` vs `r read.csv`
+
+When using `r read.csv`, some character columns are read in as factors, on the other hand `r read_csv` tends to keep such columns as character types. Also, `r read_csv`, which uses the `r readr` package tends to be a bit more efficient than `r read.csv`.
+
+To read in a csv file use:
+```{r}
+# To read in sample1.csv
+# Provided sample1 is in the working directory
+sample1 <- read_csv("sample1.csv")
+```
+
+To read in semi-colon delimited files, use `r read_csv2()`
+For tab-delimited files use `r read_tsv()`
+For fixed-width files use `r read_fwf()`
+For fixed-width files separated by white space use `r read_table()`
+For files with any delimiter use `r read_delim`
+
+To read a file sample2 whose columns are separated by "|" use:
+```{r}
+sample2 <- read_delim(sample2.txt, delim = "|")
+```
+
+To read excel files, use `r readxl`
+
+### Exporting data
+
+To export a data frame called sample1 to a .txt file use:
+```{r}
+# We can specify the desired file name using the file argument below
+# \t makes the columns tab-delimited
+write.table(x = sample1,
+            file = "sample1.txt", sep = "\t")            
+```
+
+Writing to a csv:
+```{r}
+write_csv(dataframe, "filename.csv") # Where dataframe is data to be written and filename is file to be created
+```
+
+To retain column specifications use:
+```{r}
+write_rds(dataframe, "filename.rds") # Where dataframe is data to be written and filename is file to be created
+```
+
+### Parsing
+
+```{r}
+parse_logical() # parses logicals
+parse_integer() # parses integers
+parse_double() # parses double; numbers with decimal points
+parse_number() # parses different kinds of numbers
+parse_character() # parses characters
+parse_factor() # parses factors
+parse_date() # parses date
+parse_datetime() # parses dates with a timestamp
+parse_time() # parses time
+```
+
+To remove non numeric characters before or after a number use `r parse_number()` as follows:
+```{r}
+parse_number("$5000") # This will drop the '$' and return 5000
+parse_number("It cost $123.45") # This will drop all non-numerics, the '$' and everything after the decimal point and return 123
+```
+
+Parsing numbers using the locale separator:
+```{r}
+# The local argument specifies the grouping mark used
+parse_number("123.456.789", locale = locale(grouping_mark = "."))
+```
+
+To parse a string, you have to know the correct encoding the string is in.
+To guess the encoding of a string use:
+```{r}
+guess_encoding(charToRaw())
+```
+
+You can use `r parse_factor()` to remove wrong values from a factor column with known levels as follows:
+```{r}
+# Specify levels using the levels argument of parse_factor
+factor.levels <- c("level1", "level2")
+parse_factor(c("column/list/strings"), levels = factor.levels)
+
+fruit <- c("apple", "banana")
+parse_factor(c("apple", "banana", "bananana"), levels = fruit)
+```
+
+Parse a date as follows:
+```{r}
+parse_datetime("20101010") # This will yield "2010-10-10 UTC"
+```
+
+parse_date wildcards:
+
+Year
+%Y (4 digits).
+%y (2 digits);
+Month
+%m (2 digits).
+%b (abbreviated, like "Jan").
+%B (full, "January").
+Day
+%d (2 digits).
+%e (optional leading space).
+Time
+%H 0-23 hour.
+%I 0-12, must be used with %p.
+%p AM/PM indicator.
+%M minutes.
+%S integer seconds.
+%OS real seconds.
+%Z Time zone (as name, e.g. America/Chicago). 
+%z (as offset from UTC, e.g. +0800).
+Non-digits
+%. skips one non-digit character.
+%* skips any number of non-digits.

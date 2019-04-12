@@ -1,0 +1,149 @@
+---
+title: "Data Transformation"
+author: "Oluwatobi Akinyemi - 3/16/2019"
+date: "April 8, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Transformation
+
+This file covers important code syntax to perform some of the most common functions for transforming data in R. It will also serve as a readily accessible reference for some hard to be remember functions which have great utility for the same.
+
+### Filtering with filter()
+
+Use filter to subset a data set by only returning rows that meet specific conditions.
+
+```{r filter, echo=FALSE, warning=FALSE}
+filter(dataframe, condition(s)) # Each condition can be separated by a comma sign
+```
+
+Creating a new dataframe using filter:
+
+```{r filter, echo=FALSE, warning=FALSE}
+newdf <- filter(df, condition(s))
+```
+
+Filter works with the usual comparison operators
+
+You can also set multiple conditions to filter in the same column using boolean operators:
+
+```{r filter, echo=FALSE, warning=FALSE}
+newdf <- filter(df, col1 == n | col1 == m) # m & n are specific values
+```
+
+A great way to filter for matches of multiple values use `r %in%` as follows:
+```{r filter, echo=FALSE, warning=FALSE}
+filter(df, col1 %in% c(m, n, o, p))
+```
+
+An easy way to use filter to include or exclude many values that meet a broad category at once is to use the `r !` operator:
+```{r filter, echo=FALSE, warning=FALSE}
+filter(df, !(col1 > m | col2 > m))
+```
+
+Use `r between()` to filter values in a numeric vector that fall in a specific range:
+
+```{r filter, echo=FALSE, warning=FALSE}
+filter(df, between(col1, value1, value2)) # Where value1 and value2 are the low and high edges of the range.
+```
+
+To filter for missing values using filter, use `r is.na()` as follows:
+
+```{r filter, echo=FALSE, warning=FALSE}
+filter(df, is.na(col1))
+```
+
+### Arrange rows with arrange()
+
+To arrange a data frame by descending values in a column:
+```{r arrange, echo=FALSE, warning=FALSE}
+arrange(df, desc(col1))
+```
+
+When sorting, missing values alway appear at the end.
+
+### Select columns with select()
+
+Select determines the order the columns should be returned
+
+#### Special wildcards to use with Select()
+
+The following woldcards are especially useful in selecting columns of interest when it is too cumbersome to list all desired columns out in one select statement
+
+`r start_with()` selects all column names that start with the provided string:
+```{r}
+select(df, starts_with("xyz"))
+```
+
+`r ends_with()` selects all column names that end with the provided string:
+```{r}
+select(df, ends_with("xyz"))
+```
+
+`r contains()` selects all column names that contain the provided string:
+```{r}
+select(df, contains("xyz"))
+```
+
+`r matches()` selects all column names that matches a regular expression:
+```{r}
+select(df, matches("(.)\\1"))
+```
+
+`r everything()`: When your interest in the order that variables are listed in the result are limited to only a handful, you can use `r everything()` to include all remaining varaibles after specifying the order of the few you had in mind:
+```{r}
+select(df, col3, col4, col1, everything()) 
+# The resulting data frame will have column 3 starting, followed by column 4, and column 1, then the remaining variables
+```
+
+### Mutate
+
+Mutate adds new columns by applying functions to existing columns. Create new variables using existing variables:
+```{r}
+mutate(df,
+  newvar1 = col1 - col3,
+  newvar2 = col4 / col5 * 60
+)
+```
+
+### Transmute
+
+Use `r Transmute()` to drop old variables and only keep the newly created variables
+
+%/% Integer division
+%% Remainder
+
+To break time into hours and minutes using modular arithmetic and transmute:
+
+```{r}
+transmute(flights,
+  dep_time,
+  hour = dep_time %/% 100,
+  minute = dep_time %% 100
+) 
+```
+
+### Summarize
+
+Always precede `r summarise` with `r group_by`
+
+Counting number of rows with summarise:
+```{r}
+by_dest <- group_by(flights, dest)
+delay <- summarise(by_dest,
+  count = n(),
+  dist = mean(distance, na.rm = TRUE),
+  delay = mean(arr_delay, na.rm = TRUE)
+)
+```
+
+Counting using count():
+```{r}
+df %>% 
+  count(col1)
+```
+
