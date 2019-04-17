@@ -8,6 +8,9 @@ output:
                 code_folding: show
                 toc: true
 ---
+## Link to .rmd on Github
+
+https://github.com/tobavia/dataanalytics/blob/master/FinalProject/Code/Final%20Project%20-%20Bike%20Vendors%20EDA.Rmd
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
