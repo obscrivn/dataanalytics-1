@@ -1,0 +1,191 @@
+---
+title: "Final Project - Bike Vendors EDA"
+author: "Oluwatobi Akinyemi"
+date: "April 12, 2019"
+output:
+        html_document:
+                self_contained: yes
+                code_folding: show
+                toc: true
+---
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Reading libraries
+library(dplyr); library(ggplot2); library(readr); library(reshape2); library(kableExtra)
+```
+
+## Bike Vendors EDA
+
+```{r importing data, echo=TRUE, warning=FALSE, message=FALSE}
+# Importing data set
+bikeVendors <- read_csv("E:/Box Sync/HarrisburgU/Github/dataanalytics/FinalProject/Data/bikeVendors.csv")
+```
+
+In this assignment, we will analyze the bike vendors dataset. The dataset contains information about different models of bike, categories by frame type, and primary use, as well as what percentage of sales, for 30 different bike vendors, each bike represents.
+
+### Questions
+
+The following questions will be focused on in this study;
+
++ How do bike prices vary across all vendors?
++ How does price affect sales?
++ How does bike frame type affect price?
++ How does price vary with bike category?
++ What are the best selling bikes across all vendors?
+
+### Data
+
+The bike vendors data set is provided in a csv file. It contains 97 observations across 35 variables in a wide format. To converted it into a tidy data frame, I melted and renamed the columns as needed. The resulting data frame has 2910 observations for 7 variables:
+
++ model: the brand (marketing) name of the bicycle
++ category1: for mountain or road use
++ category2: a more detailed usage bike category classification
++ frame: aluminum or carbon frame
++ price: sticker price
++ vendor: name of vendor
++ share: percentage of sales by vendor contributed by each bike model.
+
+
+```{r tidying, echo=TRUE, warning=FALSE, message=FALSE}
+# Melting data
+bikeVendors2 <- melt(bikeVendors, id.vars = 1:5, value.name = "share")
+
+# Renaming columns
+colnames(bikeVendors2) <- c("model", "category1", "category2", "frame", "price", "vendor", "share")
+```
+
+#### Baseline Table of key variables
+
+The first six rows of the new data frame is as follows:
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Create HTML table showing the variables and data for the first 5 rows
+kable(head(bikeVendors2)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
+```
+
+A quick look at the structure of the resulting data set reveals:
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+str(bikeVendors2)
+```
+
+Checking for missing data shows that the data frame contains only complete cases.
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+bikeVendors2[is.na(bikeVendors2),]
+```
+
+### Analysis
+
+Let's take a look at the distribution of bike prices:
+```{r summary, echo=TRUE, warning=FALSE, message=FALSE}
+summary(bikeVendors2$price)
+```
+
+We see a wide range of bike prices from \$415 to \$12790. However, given that the median and mean are relatively close at \$3200 and \$3954, we expect that fewer bikes are priced around \$12790. Furthermore, with our 3rd quartile price at \$5330, we are more certain that most of the bikes are sold by the vendors for less than \$5000.
+
+### Plots
+
+In this section, I will investigate the price variation a little further as I address the aforementioned research questions.
+
+#### Price variation across all vendors
+
+First we look a little closer at how the bike prices vary across all vendors
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Create ggplot object
+bike <- ggplot(bikeVendors2)
+# Plot histogram of bike prices
+bike + geom_histogram(aes(x = price), binwidth = 500, alpha = 0.7, fill = "#99CCFF") +
+  labs(title = "Figure 1: Price across all vendors", 
+       caption = "Source: Bike Vendors Dataset") +
+  geom_vline(aes(xintercept = median(price)), colour = "blue", linetype = "dashed") +
+  annotate("label", x = 3700, y = 420, label = "3200", size = 3)
+```
+
+The plot shows that the bulk of the bikes are priced below \$5000. There is also a good chunk of bikes with prices clustered at or below \$3200. The most common bike price is around \$1750. We can also see that the higher the prices, the fewer the bike offerings, as expected.
+
+#### Sales variation with price
+
+Next, we chart a scatterplot between price and the resultant percentage of sales for each bike. We also overlay a smooth line to make better visualise the relationship between both variables.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Plot price vs percent of sales
+bike + geom_point(aes(price, share), colour = "#66CCCC") +
+  geom_smooth(aes(price, share), se = FALSE) +
+  labs(title = "Figure 2: Percentage of sales vs price", 
+       x = "price", y = "percentage of sales",
+       caption = "Source: Bike Vendors Dataset")
+```
+
+The plot shows an overall reduction in percentage of sales as price increases. This inverse relationship is most evident with bikes priced between the median price, \$3200, and just under \$5400. However, the scatterplot clearly shows that cheaper bikes generally constitute a greater portion of sales by each vendor than higher priced bikes. This is expected as the more expensive bikes are often specialty bikes, only required by serious biking enthusiasts and professional cyclists. 
+
+
+#### Price variation with bike frames
+
+Given the effect of price on sales, let's try to understand how bike features contribute to price. Let's consider the effect of the bike frame material on price.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Plot freqpoly of price by frame type
+bike + geom_freqpoly(aes(price, colour = frame), binwidth = 500) +
+  labs(title = "Figure 3: Price by bike frame", 
+       caption = "Source: Bike Vendors Dataset") +
+  theme_bw()
+```
+
+The plot clearly shows that while vendors offer a number of bikes with both frame types at low prices, however, a greater number of lower priced bikes have aluminum frames. It is also evident that for bikes priced above \$3200, the frames are more likely to be made of carbon than aluminum. Also, we can see that from around \$6500 upwards there are no bikes with aluminum frames. This indicates that carbon frame bikes are more likely to be specialty bikes that cost more than their aluminum counterparts. This makes sense since carbon fiber is a lighter material than aluminum, providing better aerodynamics to the bike (Arthurs-Brennan 2017). 
+
+#### Price variation with bike category
+
+Next, let's examine the price variation according to bike category.
+```{r echo=TRUE, warning=FALSE, message=FALSE, fig.show = 'hold', out.width = '50%'}
+# Plot boxplot of price by bike category
+bike + geom_boxplot(aes(x = reorder(category2, price, FUN = median), y = price)) + coord_flip() +
+  labs(title = "Figure 4a: Prices by bike category", 
+       x = "price", y = "category",
+       caption = "Source: Bike Vendors Dataset")
+# Plot barplot of frame type by bike category
+bike + geom_bar(aes(x = category2, fill = frame)) + coord_flip() +
+  labs(title = "Figure 4b: Frame by bike category", 
+       x = "price", y = "category",
+       caption = "Source: Bike Vendors Dataset")
+```
+
+The boxplots in figure 4a show that sport bikes have the least variability in price, while cross country race bikes have the most variability in price. Given what we know from figure 3 about the price distribution, the low price of the sport bikes suggests that these are primarily aluminum frame bikes, which we can confirm in figure 4b. On the other hand, with the spread of the prices for cross country race bikes, and a median price greater than \$5000, we expect there to be much more carbon frame than aluminum frame bikes in this category. An interesting category to note is the Elite road category which has an almost even mix of carbon and aluminum frame bike (see figure 4b), yet with most offerings priced below \$5000 save for a few outliers (see figure 4a). Essentially, this may be a best-value category.
+
+#### Bestselling bikes by category
+
+Let's dig a little deeper by examining the effect of bike category and frame on sales. We do not have enough information to determine real profit numbers, but we can estimate which bike categories are the bestselling by plotting the categories that have contributed the highest portion of sales for each vendor.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Plot barplot of bestselling bikes across all vendors
+bikeVendors2 %>% group_by(vendor) %>% filter(share == max(share)) %>%
+  ggplot() + geom_bar(aes(category2, fill = frame)) +
+  coord_flip() +
+  labs(title = "Figure 5: Bestselling bike categories across all vendors", 
+       x = "category", y = "sales",
+       caption = "Source: Bike Vendors Dataset") +
+  theme(panel.background = element_blank(), panel.grid = element_blank())
+```
+
+This plot clearly shows that the Elite Road bikes are the bestselling category, while the least selling category is the fat bike category which does not even feature on this plot. This means that fat bikes were never the bestselling category for any vendor. This may explain why the vendors do not offer a lot of bikes in this category as seen in figure 4b. This plot also shows that the top bestselling categories, Elite Road and Endurance Road, have a decent mix of both aluminum and carbon fiber bikes. As mentioned above, this combination of premium frame and low-mid price may represent best-value categories. Interestingly, Cyclocross, a lower priced carbon frame bike category, has an underwhelming sales percentage even though it is also a road bike. It is not clear why this disparity exists, and it may simply be down to a difference in brand popularity. Based on these facts we cannot conclude that frame material on its own has a massive effect on sales. This suggests that the bike vendors cater to a wide spectrum of shoppers who buy both low priced aluminum frame bikes as well as premium priced carbon fiber bikes.
+
+### Conclusion
+
+The above analysis shows that higher priced bikes generally do not sell as well as lower priced bikes. Also, the most significant factor affecting bike price is the frame material, with most bikes with carbon frames costing much more than those with aluminum frames. In addition, of all the bike categories, the bestselling bikes are the Elite Road and Endurance Road bikes, while the least selling category is the fat bike category. Frame material does not seem to have a significant effect on sales. However, the combination of premium frame material (carbon) sold at low to medium prices seems to yield more sales.
+
+### Bibliography
+
+Arthurs-Brennan, M. (2017, December 18). Bike test: Aluminium, steel, carbon or titanium? Retrieved April 16, 2019, from https://www.cyclingweekly.com/group-tests/carbon-aluminium-steel-titanium-132965
+
+Hadley Wickham, Romain Francois, Lionel Henry and Kirill Muller (2018). dplyr: A Grammar of Data Manipulation. R package version 0.7.8. https://CRAN.R-project.org/package=dplyr
+
+H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016. https://cran.r-project.org/web/packages/ggplot2/citation.html
+
+Hadley Wickham, Jim Hester and Romain Francois (2018). readr: Read Rectangular Text Data. R package version 1.3.1.
+https://CRAN.R-project.org/package=readr
+
+Hao Zhu (2019). kableExtra: Construct Complex Table with 'kable' and Pipe Syntax. R package version
+1.0.1. https://CRAN.R-project.org/package=kableExtra
+
+Hadley Wickham (2007). Reshaping Data with the reshape Package. Journal of Statistical Software, 21(12),
+  1-20. URL http://www.jstatsoft.org/v21/i12/.
