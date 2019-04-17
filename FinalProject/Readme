@@ -10,5 +10,4 @@ In this project, I will be conducting an exploratory data analysis of the bike v
 
 ## Data
 
-The Bike Vendors data set contains information about the market share of different bike vendors for different models and types of bikes. The data set is provided in a csv file which contains 97 observations of 35 variables.
-
+The Bike Vendors data set contains information about the share of sales for different models and types of bikes sold by different bike vendors. The data set is provided in a csv file which contains 97 observations of 35 variables.
